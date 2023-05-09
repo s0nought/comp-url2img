@@ -4,10 +4,6 @@ TITLE Compare screenshots
 
 SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 
-SET "ResultFile=..\result.txt"
-
-PUSHD "%~dp0"
-
 GOTO :Main
 
 :getImageAttribute
@@ -17,9 +13,29 @@ GOTO :Main
 
 :Main
 
+SET "ResultFile=..\result.txt"
+
+PUSHD "%~dp0"
+
+SET "BeforeFilesCount=0"
+SET "AfterFilesCount=0"
+
+FOR /F "usebackq" %%A IN (`DIR /A-D /B "before\*.png" 2^>NUL ^| FIND /C /V ""`) DO (
+    SET "BeforeFilesCount=%%A"
+)
+
+FOR /F "usebackq" %%A IN (`DIR /A-D /B "after\*.png" 2^>NUL ^| FIND /C /V ""`) DO (
+    SET "AfterFilesCount=%%A"
+)
+
+IF %BeforeFilesCount% NEQ %AfterFilesCount% (
+    ECHO Error: Number of files in 'before' and 'after' directories differ
+    GOTO :Finalize
+)
+
 CD "before"
 
-FOR %%A IN (*) DO (
+FOR %%A IN (*.png) DO (
     ECHO %%A
 
     @REM both images will have the same width
@@ -51,6 +67,10 @@ FOR %%A IN (*) DO (
     )
 )
 
+:Finalize
+
 POPD
 
 ENDLOCAL
+
+PAUSE
